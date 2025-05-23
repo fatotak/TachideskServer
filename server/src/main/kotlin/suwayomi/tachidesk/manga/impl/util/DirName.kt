@@ -35,11 +35,13 @@ private fun getChapterDir(
 ): String {
     val chapterEntry = transaction { ChapterTable.selectAll().where { ChapterTable.id eq chapterId }.first() }
 
+    val sortValue = "%08.2f".format(ChapterTable.chapter_number)
+
     val chapterDir =
         SafePath.buildValidFilename(
             when {
-                chapterEntry[ChapterTable.scanlator] != null -> "${chapterEntry[ChapterTable.scanlator]}_${chapterEntry[ChapterTable.name]}"
-                else -> chapterEntry[ChapterTable.name]
+                chapterEntry[ChapterTable.scanlator] != null -> "${sortValue}_${chapterEntry[ChapterTable.scanlator]}_${chapterEntry[ChapterTable.name]}"
+                else -> "${sortValue}_${chapterEntry[ChapterTable.name]}"
             },
         )
 
