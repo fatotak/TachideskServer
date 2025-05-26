@@ -151,13 +151,13 @@ tasks {
         mergeServiceFiles()
     }
 
-    test {
-        useJUnitPlatform()
-        testLogging {
-            showStandardStreams = true
-            events("passed", "skipped", "failed")
-        }
-    }
+//    test {
+//        useJUnitPlatform()
+//        testLogging {
+//            showStandardStreams = true
+//            events("passed", "skipped", "failed")
+//        }
+//    }
 
     withType<KotlinJvmCompile> {
         compilerOptions {

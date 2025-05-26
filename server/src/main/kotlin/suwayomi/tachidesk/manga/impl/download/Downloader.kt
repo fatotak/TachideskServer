@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -35,6 +36,7 @@ import suwayomi.tachidesk.manga.impl.download.model.DownloadUpdateType.PROGRESS
 import suwayomi.tachidesk.manga.impl.download.model.DownloadUpdateType.STOPPED
 import suwayomi.tachidesk.manga.model.table.ChapterTable
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.time.Duration.Companion.seconds
 
 class Downloader(
     private val scope: CoroutineScope,
@@ -45,7 +47,10 @@ class Downloader(
     private val onDownloadFinished: () -> Unit,
 ) {
     companion object {
-        private const val MAX_RETRIES = 3
+        private const val MAX_RETRIES = 10
+        private val INITIAL_DELAY = 1.seconds
+        private val MAX_DELAY = 600.seconds
+        private const val STEP_FACTOR = 2
     }
 
     private val logger = KotlinLogging.logger("${Downloader::class.java.name} source($sourceId)")
@@ -114,6 +119,8 @@ class Downloader(
     }
 
     private suspend fun run() {
+        var failDelay = INITIAL_DELAY
+
         while (downloadQueue.isNotEmpty() && currentCoroutineContext().isActive) {
             val download =
                 availableSourceDownloads.firstOrNull {
@@ -155,6 +162,7 @@ class Downloader(
                     }
                 }
                 finishDownload(downloadLogger, download)
+                failDelay = INITIAL_DELAY
             } catch (e: CancellationException) {
                 logger.debug { "Downloader was stopped" }
                 availableSourceDownloads.filter { it.state == Downloading }.forEach { it.state = Queued }
@@ -173,6 +181,18 @@ class Downloader(
                 download.tries++
                 download.state = Error
                 notifier(false, DownloadUpdate(ERROR, download))
+
+                // wait before retrying.
+                if (download.tries < MAX_RETRIES) {
+                    delay(failDelay)
+                    // if failDelay is less than max, multiply by step factor.
+                    if (failDelay < MAX_DELAY) {
+                        failDelay *= STEP_FACTOR
+                        if (failDelay > MAX_DELAY) {
+                            failDelay = MAX_DELAY
+                        }
+                    }
+                }
             }
         }
     }
