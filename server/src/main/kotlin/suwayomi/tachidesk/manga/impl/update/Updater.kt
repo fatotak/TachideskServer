@@ -143,6 +143,7 @@ class Updater : IUpdater {
 
         val isAutoUpdateDisabled = serverConfig.globalUpdateInterval.value == 0.0
         if (isAutoUpdateDisabled) {
+            preferences.edit().remove(lastAutomatedUpdateKey)
             return
         }
 
@@ -150,7 +151,9 @@ class Updater : IUpdater {
             serverConfig.globalUpdateInterval.value.hours
                 .coerceAtLeast(6.hours)
                 .inWholeMilliseconds
-        val lastAutomatedUpdate = preferences.getLong(lastAutomatedUpdateKey, 0)
+        // START CHANGE
+        val lastAutomatedUpdate = preferences.getLong(lastAutomatedUpdateKey, serverConfig.globalUpdateSeedTime.value)
+        // END CHANGE
         val timeToNextExecution = (updateInterval - (System.currentTimeMillis() - lastAutomatedUpdate)).mod(updateInterval)
 
         val wasPreviousUpdateTriggered =

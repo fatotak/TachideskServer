@@ -47,10 +47,10 @@ class Downloader(
     private val onDownloadFinished: () -> Unit,
 ) {
     companion object {
-        private const val MAX_RETRIES = 10
+        private const val MAX_RETRIES = 5
         private val INITIAL_DELAY = 1.seconds
-        private val MAX_DELAY = 600.seconds
-        private const val STEP_FACTOR = 2
+        private val MAX_DELAY = 60.seconds
+        private const val STEP_FACTOR = 3
     }
 
     private val logger = KotlinLogging.logger("${Downloader::class.java.name} source($sourceId)")

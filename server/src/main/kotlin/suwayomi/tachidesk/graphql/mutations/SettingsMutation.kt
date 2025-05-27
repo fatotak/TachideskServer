@@ -146,6 +146,21 @@ class SettingsMutation {
         updateSetting(settings.maxSourcesInParallel, serverConfig.maxSourcesInParallel)
 
         // updater
+
+        // START CHANGE
+        // TODO: figure out how to set lastAutomatedUpdate when globalUpdateInterval changes here?
+        // 1. Clear lastAutomatedUpdate when globalUpdateInterval is reset.
+        // 2. Set the lastAutomatedUpdate time to now when globalUpdateInterval is set.
+        if ((settings.globalUpdateInterval != null) &&
+            (settings.globalUpdateInterval != serverConfig.globalUpdateInterval.value)
+        ) {
+            if (settings.globalUpdateInterval == 0.toDouble()) {
+                serverConfig.globalUpdateSeedTime.value = 0
+            } else {
+                serverConfig.globalUpdateSeedTime.value = System.currentTimeMillis()
+            }
+        }
+        // END CHANGE
         updateSetting(settings.excludeUnreadChapters, serverConfig.excludeUnreadChapters)
         updateSetting(settings.excludeNotStarted, serverConfig.excludeNotStarted)
         updateSetting(settings.excludeCompleted, serverConfig.excludeCompleted)

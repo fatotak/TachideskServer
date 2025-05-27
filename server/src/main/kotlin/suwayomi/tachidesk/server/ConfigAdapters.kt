@@ -14,6 +14,10 @@ object IntConfigAdapter : ConfigAdapter<Int> {
     override fun toType(configValue: String): Int = configValue.toInt()
 }
 
+object LongConfigAdapter : ConfigAdapter<Long> {
+    override fun toType(configValue: String): Long = configValue.toLong()
+}
+
 object BooleanConfigAdapter : ConfigAdapter<Boolean> {
     override fun toType(configValue: String): Boolean = configValue.toBoolean()
 }

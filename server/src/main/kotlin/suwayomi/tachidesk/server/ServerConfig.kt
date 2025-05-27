@@ -125,6 +125,7 @@ class ServerConfig(
     val excludeNotStarted: MutableStateFlow<Boolean> by OverrideConfigValue(BooleanConfigAdapter)
     val excludeCompleted: MutableStateFlow<Boolean> by OverrideConfigValue(BooleanConfigAdapter)
     val globalUpdateInterval: MutableStateFlow<Double> by OverrideConfigValue(DoubleConfigAdapter)
+    val globalUpdateSeedTime: MutableStateFlow<Long> by OverrideConfigValue(LongConfigAdapter)
     val updateMangas: MutableStateFlow<Boolean> by OverrideConfigValue(BooleanConfigAdapter)
 
     // Authentication
