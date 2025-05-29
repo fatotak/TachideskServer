@@ -151,8 +151,10 @@ class Updater : IUpdater {
             serverConfig.globalUpdateInterval.value.hours
                 .coerceAtLeast(6.hours)
                 .inWholeMilliseconds
+
         // START CHANGE
-        val lastAutomatedUpdate = preferences.getLong(lastAutomatedUpdateKey, serverConfig.globalUpdateSeedTime.value)
+        // Changed from 0 to current time.
+        val lastAutomatedUpdate = preferences.getLong(lastAutomatedUpdateKey, System.currentTimeMillis())
         // END CHANGE
         val timeToNextExecution = (updateInterval - (System.currentTimeMillis() - lastAutomatedUpdate)).mod(updateInterval)
 
