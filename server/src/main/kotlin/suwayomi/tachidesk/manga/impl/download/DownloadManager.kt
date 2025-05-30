@@ -75,10 +75,17 @@ object DownloadManager {
             }.orEmpty()
 
     private fun saveDownloadQueue() {
+        // START EDIT
         sharedPreferences
             .edit()
             .putStringSet(DOWNLOAD_QUEUE_KEY, downloadQueue.map { it.chapter.id.toString() }.toSet())
-            .apply()
+            .commit()
+        // original
+//        sharedPreferences
+//            .edit()
+//            .putStringSet(DOWNLOAD_QUEUE_KEY, downloadQueue.map { it.chapter.id.toString() }.toSet())
+//            .apply()
+        // END
     }
 
     private fun triggerSaveDownloadQueue() {
