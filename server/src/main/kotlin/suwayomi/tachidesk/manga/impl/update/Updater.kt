@@ -116,10 +116,24 @@ class Updater : IUpdater {
 
     override fun getLastUpdateTimestamp(): Long = preferences.getLong(lastUpdateKey, 0)
 
+    fun saveLastUpdateTimestamp() {
+        preferences.edit().putLong(lastUpdateKey, System.currentTimeMillis()).apply()
+    }
+
+    fun getLastAutomatedUpdateTimestamp(): Long = preferences.getLong(lastAutomatedUpdateKey, 0)
+
+    fun saveLastAutomatedUpdateTimestamp() {
+        preferences.edit().putLong(lastAutomatedUpdateKey, System.currentTimeMillis()).apply()
+    }
+
+    override fun deleteLastAutomatedUpdateTimestamp() {
+        preferences.edit().remove(lastAutomatedUpdateKey).apply()
+    }
+
     private fun autoUpdateTask() {
         try {
-            val lastAutomatedUpdate = preferences.getLong(lastAutomatedUpdateKey, 0)
-            preferences.edit().putLong(lastAutomatedUpdateKey, System.currentTimeMillis()).apply()
+            val lastAutomatedUpdate = getLastAutomatedUpdateTimestamp()
+            saveLastAutomatedUpdateTimestamp()
 
             if (getStatus().isRunning) {
                 logger.debug { "Global update is already in progress" }
@@ -152,15 +166,23 @@ class Updater : IUpdater {
                 .coerceAtLeast(6.hours)
                 .inWholeMilliseconds
 
-        // START CHANGE
-        // Changed from 0 to current time.
-        val lastAutomatedUpdate = preferences.getLong(lastAutomatedUpdateKey, System.currentTimeMillis())
-        // END CHANGE
-        val timeToNextExecution = (updateInterval - (System.currentTimeMillis() - lastAutomatedUpdate)).mod(updateInterval)
+      val lastAutomatedUpdate = getLastAutomatedUpdateTimestamp()
+        val isInitialScheduling = lastAutomatedUpdate == 0L
+
+        val timeToNextExecution =
+            if (!isInitialScheduling) {
+                (updateInterval - (System.currentTimeMillis() - lastAutomatedUpdate)).mod(updateInterval)
+            } else {
+                updateInterval
+            }
+
+        if (isInitialScheduling) {
+            saveLastAutomatedUpdateTimestamp()
+        }
 
         val wasPreviousUpdateTriggered =
             System.currentTimeMillis() - (
-                if (lastAutomatedUpdate > 0) lastAutomatedUpdate else System.currentTimeMillis()
+                if (!isInitialScheduling) lastAutomatedUpdate else System.currentTimeMillis()
             ) < updateInterval
         if (!wasPreviousUpdateTriggered) {
             GlobalScope.launch {
@@ -321,7 +343,7 @@ class Updater : IUpdater {
         clear: Boolean?,
         forceAll: Boolean,
     ) {
-        preferences.edit().putLong(lastUpdateKey, System.currentTimeMillis()).apply()
+        saveLastUpdateTimestamp()
 
         if (clear == true) {
             reset()
