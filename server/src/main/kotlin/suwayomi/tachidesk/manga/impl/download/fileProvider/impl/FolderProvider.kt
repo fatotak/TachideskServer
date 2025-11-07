@@ -7,6 +7,7 @@ import org.jetbrains.exposed.sql.update
 import suwayomi.tachidesk.manga.impl.download.fileProvider.ChaptersFilesProvider
 import suwayomi.tachidesk.manga.impl.download.fileProvider.FileType.RegularFile
 import suwayomi.tachidesk.manga.impl.util.getChapterCachePath
+import suwayomi.tachidesk.manga.impl.util.getChapterDownloadPath
 import suwayomi.tachidesk.manga.impl.util.storage.FileDeletionHelper
 import suwayomi.tachidesk.manga.model.table.ChapterTable
 import suwayomi.tachidesk.server.ApplicationDirs
@@ -57,8 +58,9 @@ class FolderProvider(
     }
 
     override fun delete(): Boolean {
-        val folder = File(path)
-        if (!folder.exists()) {
+        val chapterDirPath = getChapterDownloadPath(mangaId, chapterId)
+        val chapterDir = File(chapterDirPath)
+        if (!chapterDir.exists()) {
             return true
         }
 

@@ -122,6 +122,17 @@ fun getChapterDownloadPaths(
     }
 }
 
+// TODO: Delete the below 2 functions to implement multi-version file naming.
+fun getChapterDownloadPath(
+    mangaId: Int,
+    chapterId: Int,
+): String = getChapterDownloadPaths(mangaId, chapterId).first()
+
+fun getChapterCbzPath(
+    mangaId: Int,
+    chapterId: Int,
+): String = getChapterDownloadPath(mangaId, chapterId) + ".cbz"
+
 /**
  * Use the most preferred name for cache path.
  */
