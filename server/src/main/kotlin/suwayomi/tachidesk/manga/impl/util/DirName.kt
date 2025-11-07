@@ -22,7 +22,8 @@ private val applicationDirs: ApplicationDirs by injectLazy()
 private fun getMangaDir(mangaId: Int): String =
     transaction {
         val mangaEntry = MangaTable.selectAll().where { MangaTable.id eq mangaId }.first()
-        val source = GetCatalogueSource.getCatalogueSourceOrStub(mangaEntry[MangaTable.sourceReference])
+        val source =
+            GetCatalogueSource.getCatalogueSourceOrStub(mangaEntry[MangaTable.sourceReference])
 
         val sourceDir = SafePath.buildValidFilename(source.toString())
         val mangaDir = SafePath.buildValidFilename(mangaEntry[MangaTable.title])
@@ -37,20 +38,22 @@ private fun getChapterDirV1(
         // Get chapter data and build chapter-specific directory name
         val chapterEntry = ChapterTable.selectAll().where { ChapterTable.id eq chapterId }.first()
 
-    val sortValueComponents = chapterEntry[ChapterTable.chapter_number].toString().trim().split(".")
-    var sortValue = "%06d".format(sortValueComponents[0].toInt())
-    for (i in 1..sortValueComponents.lastIndex) {
-        sortValue += "." + sortValueComponents[i].padStart(2, '0')
-    }
+        val sortValueComponents =
+            chapterEntry[ChapterTable.chapter_number].toString().trim().split(".")
+        var sortValue = "%06d".format(sortValueComponents[0].toInt())
+        for (i in 1..sortValueComponents.lastIndex) {
+            sortValue += "." + sortValueComponents[i].padStart(2, '0')
+        }
 
-    val chapterDir =
-        SafePath.buildValidFilename(
-            when {
-                chapterEntry[ChapterTable.scanlator] != null ->
-                    "$sortValue-${chapterEntry[ChapterTable.scanlator]}_${chapterEntry[ChapterTable.name]}"
-                else -> "$sortValue-${chapterEntry[ChapterTable.name]}"
-            },
-        )
+        val chapterDir =
+            SafePath.buildValidFilename(
+                when {
+                    chapterEntry[ChapterTable.scanlator] != null ->
+                        "$sortValue-${chapterEntry[ChapterTable.scanlator]}_${chapterEntry[ChapterTable.name]}"
+
+                    else -> "$sortValue-${chapterEntry[ChapterTable.name]}"
+                },
+            )
 
         // Get manga directory and combine with chapter directory
         // Note: This creates a nested transaction, but Exposed handles this with useNestedTransactions=true
@@ -60,27 +63,31 @@ private fun getChapterDirV1(
 private fun getChapterDirV2(
     mangaId: Int,
     chapterId: Int,
-): String {
-    val chapterEntry = transaction { ChapterTable.selectAll().where { ChapterTable.id eq chapterId }.first() }
+): String =
+    transaction {
+        val chapterEntry =
+            ChapterTable.selectAll().where { ChapterTable.id eq chapterId }.first()
 
-    // it was discovered that chapter number is a float, not a string.
-    val sortValueComponents = chapterEntry[ChapterTable.chapter_number].toString().split( ".", limit = 2)
-    var sortValue = sortValueComponents[0].padStart(5, '0')
-    if (sortValueComponents.size > 1) {
-        sortValue += "." + sortValueComponents[1].padStart(2, '0')
+        // it was discovered that chapter number is a float, not a string.
+        val sortValueComponents =
+            chapterEntry[ChapterTable.chapter_number].toString().split(".", limit = 2)
+        var sortValue = sortValueComponents[0].padStart(5, '0')
+        if (sortValueComponents.size > 1) {
+            sortValue += "." + sortValueComponents[1].padStart(2, '0')
+        }
+
+        val chapterDir =
+            SafePath.buildValidFilename(
+                when {
+                    chapterEntry[ChapterTable.scanlator] != null ->
+                        "$sortValue-${chapterEntry[ChapterTable.name]}_${chapterEntry[ChapterTable.scanlator]}"
+
+                    else -> "$sortValue-${chapterEntry[ChapterTable.name]}"
+                },
+            )
+
+        getMangaDir(mangaId) + "/$chapterDir"
     }
-
-    val chapterDir =
-        SafePath.buildValidFilename(
-            when {
-                chapterEntry[ChapterTable.scanlator] != null ->
-                    "$sortValue-${chapterEntry[ChapterTable.name]}_${chapterEntry[ChapterTable.scanlator]}"
-                else -> "$sortValue-${chapterEntry[ChapterTable.name]}"
-            },
-        )
-
-    return getMangaDir(mangaId) + "/$chapterDir"
-}
 
 private fun getChapterDirs(
     mangaId: Int,
@@ -94,9 +101,11 @@ private fun getChapterDirs(
     }
 }
 
-fun getThumbnailDownloadPath(mangaId: Int): String = applicationDirs.thumbnailDownloadsRoot + "/$mangaId"
+fun getThumbnailDownloadPath(mangaId: Int): String =
+    applicationDirs.thumbnailDownloadsRoot + "/$mangaId"
 
-fun getMangaDownloadDir(mangaId: Int): String = applicationDirs.mangaDownloadsRoot + "/" + getMangaDir(mangaId)
+fun getMangaDownloadDir(mangaId: Int): String =
+    applicationDirs.mangaDownloadsRoot + "/" + getMangaDir(mangaId)
 
 /**
  * Return a list of possible download paths in order of preference.
@@ -106,7 +115,7 @@ fun getChapterDownloadPaths(
     chapterId: Int,
 ): List<String> {
     val chapterDirs = getChapterDirs(mangaId, chapterId)
-    return buildList (chapterDirs.size){
+    return buildList(chapterDirs.size) {
         chapterDirs.forEach {
             add(applicationDirs.mangaDownloadsRoot + "/" + it)
         }
@@ -133,7 +142,8 @@ fun updateMangaDownloadDir(
     val newMangaDir =
         transaction {
             val mangaEntry = MangaTable.selectAll().where { MangaTable.id eq mangaId }.first()
-            val source = GetCatalogueSource.getCatalogueSourceOrStub(mangaEntry[MangaTable.sourceReference])
+            val source =
+                GetCatalogueSource.getCatalogueSourceOrStub(mangaEntry[MangaTable.sourceReference])
             val sourceDir = SafePath.buildValidFilename(source.toString())
             val newMangaDirName = SafePath.buildValidFilename(newTitle)
             "$sourceDir/$newMangaDirName"
